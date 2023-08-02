@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, session, flash
 
 class Jogo:
     def __init__(self, nome, categoria, console) -> None:
@@ -12,6 +12,7 @@ jogo3 = Jogo('Mortal Kombat', 'Luta', 'PS2')
 lista = [jogo1, jogo2, jogo3]
 
 app = Flask(__name__)# faz referencia para o proprio arquivo garantindo de que vai rodar a aplicação
+app.secret_key = 'alura' # camada de criptografia
 
 @app.route('/')
 def index():
@@ -23,8 +24,8 @@ def index():
 def novo():
     return render_template('novo.html', titulo = 'Novo Jogo')
 
-
-@app.route('/criar', methods=['POST',])
+# necessário o methods Post para que a função não apareça na barra de endereços
+@app.route('/criar', methods=['POST',]) 
 
 def criar():
     nome = request.form['nome']
@@ -34,4 +35,19 @@ def criar():
     lista.append(jogo)
     return redirect('/')
 
-app.run(host='0.0.0.0', port=8080, debug=True)# faz executar a aplicação
+@app.route('/login')
+def login():
+    return render_template('login.html')
+
+@app.route('/autenticar', methods=['POST', ])
+def autenticar():
+    if 'alohomora' == request.form['senha']:
+        session['usuario_logado'] = request.form['usuario']
+        flash(request.form['usuario'] + ' logou com sucesso!') # exibe mesangem de usuário logado com sucesso
+        return redirect('/')
+    else:
+        flash('Usuário não logado!')
+        return redirect('/login')
+
+# faz executar a aplicação, o debug=True dispensa que fiquemos restartando a aplicação
+app.run(host='0.0.0.0', port=8080, debug=True)
