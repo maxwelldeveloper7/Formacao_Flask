@@ -9,7 +9,7 @@ app.config['SQLALCHEMY_DATABASE_URI'] = \
     '{SGDB}://{usuario}:{senha}@{servidor}/{database}'.format(
         SGDB = 'mysql+mysqlconnector',
         usuario = 'dev',
-        senha = '@Developer7', password no mysql com @
+        senha = '#Developer7',
         servidor = 'localhost',
         database = 'jogoteca'
     )
@@ -53,8 +53,17 @@ def criar():
     nome = request.form['nome']
     categoria = request.form['categoria']
     console = request.form['console']    
-    jogo = Jogo(nome, categoria, console)
-    lista.append(jogo)
+    
+    jogo = Jogos.query.filter_by(nome = nome).first()
+    
+    if jogo:
+        flash('Jogo já existente')
+        return redirect(url_for('index'))
+    
+    novo_jogo = Jogos(nome = nome, categoria = categoria, console = console)
+    db.session.add(novo_jogo)
+    db.session.commit()        
+    
     return redirect(url_for('index'))
 
 
@@ -65,9 +74,8 @@ def login():
 
 @app.route('/autenticar', methods=['POST', ])
 def autenticar():
-
-    if request.form['usuario'] in usuarios:
-        usuario = usuarios[request.form['usuario']]
+    usuario = Usuarios.query.filter_by(nickname = request.form['usuario']).first()
+    if usuario:
         if request.form['senha'] == usuario.senha:
             session['usuario_logado'] = usuario.nickname
             flash(usuario.nickname + ' logou com sucesso!') # exibe mesangem de usuário logado com sucesso
